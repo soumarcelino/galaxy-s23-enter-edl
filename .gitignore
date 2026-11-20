@@ -1,0 +1,10 @@
+module/*.cmd
+module/*.ko
+module/*.mod
+module/*.mod.c
+module/*.mod.o
+module/*.o
+module/*.order
+module/*.symvers
+module/.Module.symvers.gzi.kbuild
+!module/Module.symvers.gzi
