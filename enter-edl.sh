@@ -14,6 +14,10 @@ adb_cmd() {
     "$ADB_BIN" "${ADB_ARGS[@]}" "$@"
 }
 
+root_cmd() {
+    adb_cmd shell "su -c '$1'"
+}
+
 if lsusb -d 05c6:9008 >/dev/null 2>&1; then
     echo "Device is already in EDL (05c6:9008)."
     exit 0
@@ -40,11 +44,10 @@ module_release="$(modinfo -F vermagic "$KO" | awk '{print $1}')"
 }
 
 adb_cmd push "$KO" /data/local/tmp/edl_reboot.ko >/dev/null
-adb_cmd shell su -c \
-    'grep -q "^edl_reboot " /proc/modules || /data/adb/ksu/bin/ksud insmod /data/local/tmp/edl_reboot.ko'
+root_cmd 'grep -q "^edl_reboot " /proc/modules || { KSUD=/data/adb/ksud; [ -x "$KSUD" ] || KSUD=/data/adb/ksu/bin/ksud; "$KSUD" insmod /data/local/tmp/edl_reboot.ko; }'
 
 echo "Rebooting to EDL..."
-adb_cmd shell su -c 'reboot edl' >/dev/null 2>&1 || true
+root_cmd 'reboot edl' >/dev/null 2>&1 || true
 
 for _ in $(seq 1 30); do
     if lsusb -d 05c6:9008; then
